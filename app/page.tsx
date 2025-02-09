@@ -45,6 +45,7 @@ export default function ChatRoom() {
       inputMessage.trim()
     ) {
       const message: Message = {
+        type: "message",
         author: clientId, // Use the client ID as the author
         content: inputMessage,
       };
@@ -65,17 +66,21 @@ export default function ChatRoom() {
             <div
               key={index}
               className={`mb-4 ${
-                msg.author === clientId ? "text-right" : "text-left"
+                msg.type === "message" && msg.author === clientId
+                  ? "text-right"
+                  : "text-left"
               }`}
             >
               <div
                 className={`inline-block max-w-[70%] px-4 py-2 rounded-lg ${
-                  msg.author === clientId
+                  msg.type === "message" && msg.author === clientId
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted"
                 }`}
               >
-                <div className="font-semibold text-sm">{msg.author}</div>
+                <div className="font-semibold text-sm">
+                  {msg.type === "message" ? msg.author : "System"}
+                </div>
                 <div className="text-sm break-words">{msg.content}</div>
               </div>
             </div>
