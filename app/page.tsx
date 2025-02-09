@@ -11,10 +11,15 @@ export default function ChatRoom() {
   const socketRef = useRef<WebSocket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
+  const [clientId, setClientId] = useState("");
 
   // WebSocket 连接设置
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Generate a unique ID for this client
+    const id = Math.random().toString(36).substring(2, 15);
+    setClientId(id);
 
     const url = `ws://${window.location.host}/socket`;
     const ws = new WebSocket(url);
@@ -40,14 +45,14 @@ export default function ChatRoom() {
       inputMessage.trim()
     ) {
       const message: Message = {
-        author: "You",
+        author: clientId, // Use the client ID as the author
         content: inputMessage,
       };
       socketRef.current.send(JSON.stringify(message));
-      setMessages((prev) => [...prev, message]);
+      // setMessages((prev) => [...prev, message]); // Don't add to messages here, wait for server echo
       setInputMessage("");
     }
-  }, [inputMessage]);
+  }, [inputMessage, clientId]);
 
   return (
     <Card className="w-full max-w-2xl mx-auto mt-8">
@@ -60,12 +65,12 @@ export default function ChatRoom() {
             <div
               key={index}
               className={`mb-4 ${
-                msg.author === "You" ? "text-right" : "text-left"
+                msg.author === clientId ? "text-right" : "text-left"
               }`}
             >
               <div
                 className={`inline-block max-w-[70%] px-4 py-2 rounded-lg ${
-                  msg.author === "You"
+                  msg.author === clientId
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted"
                 }`}
