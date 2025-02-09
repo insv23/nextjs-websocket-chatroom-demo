@@ -1,101 +1,92 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { Message } from "./types/message";
+
+export default function ChatRoom() {
+  const socketRef = useRef<WebSocket | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputMessage, setInputMessage] = useState("");
+
+  // WebSocket 连接设置
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const url = `ws://${window.location.host}/socket`;
+    const ws = new WebSocket(url);
+    socketRef.current = ws;
+
+    ws.onmessage = async (event) => {
+      const payload =
+        typeof event.data === "string" ? event.data : await event.data.text();
+      const message = JSON.parse(payload) as Message;
+      setMessages((prev) => [...prev, message]);
+    };
+
+    return () => {
+      ws.close();
+      socketRef.current = null;
+    };
+  }, []);
+
+  // 发送消息处理
+  const sendMessage = useCallback(() => {
+    if (
+      socketRef.current?.readyState === WebSocket.OPEN &&
+      inputMessage.trim()
+    ) {
+      const message: Message = {
+        author: "You",
+        content: inputMessage,
+      };
+      socketRef.current.send(JSON.stringify(message));
+      setMessages((prev) => [...prev, message]);
+      setInputMessage("");
+    }
+  }, [inputMessage]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <Card className="w-full max-w-2xl mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>Chat Room</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <ScrollArea className="h-[500px] p-4 border rounded-md">
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`mb-4 ${
+                msg.author === "You" ? "text-right" : "text-left"
+              }`}
+            >
+              <div
+                className={`inline-block max-w-[70%] px-4 py-2 rounded-lg ${
+                  msg.author === "You"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted"
+                }`}
+              >
+                <div className="font-semibold text-sm">{msg.author}</div>
+                <div className="text-sm break-words">{msg.content}</div>
+              </div>
+            </div>
+          ))}
+        </ScrollArea>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        <div className="flex space-x-2">
+          <Input
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Type your message..."
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          />
+          <Button onClick={sendMessage}>Send</Button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
