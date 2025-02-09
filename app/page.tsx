@@ -13,7 +13,7 @@ export default function ChatRoom() {
   const [inputMessage, setInputMessage] = useState("");
   const [clientId, setClientId] = useState("");
 
-  // WebSocket 连接设置
+  // WebSocket connection setup
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -38,7 +38,7 @@ export default function ChatRoom() {
     };
   }, []);
 
-  // 发送消息处理
+  // Message sending handler
   const sendMessage = useCallback(() => {
     if (
       socketRef.current?.readyState === WebSocket.OPEN &&
@@ -49,7 +49,7 @@ export default function ChatRoom() {
         content: inputMessage,
       };
       socketRef.current.send(JSON.stringify(message));
-      // setMessages((prev) => [...prev, message]); // Don't add to messages here, wait for server echo
+      setMessages((prev) => [...prev, message]); // Add to messages *here*
       setInputMessage("");
     }
   }, [inputMessage, clientId]);
