@@ -27,6 +27,7 @@ export default function ChatRoom() {
       const message = JSON.parse(payload) as Message;
 
       // Handle the 'identity' message to set the client ID
+      // 这里 message.id 可能不存在, AI!
       if (message.type === "identity") {
         setClientId(message.id);
       } else {
