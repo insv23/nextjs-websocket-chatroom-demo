@@ -1,6 +1,6 @@
 # Real-time Chat Application with Next.js and WebSockets
 
-This project is a real-time chat application built using Next.js 15, WebSockets, and Tailwind CSS. It demonstrates a simple, multi-user chat room where users can send and receive messages instantly. Client IDs are generated randomly for display purposes.
+This project is a real-time chat application built using Next.js 15, shadcn, WebSockets, [next-ws](https://github.com/apteryxxyz/next-ws) and Tailwind CSS. It demonstrates a simple, multi-user chat room where users can send and receive messages instantly. Client IDs are generated randomly.
 
 ## Features
 
