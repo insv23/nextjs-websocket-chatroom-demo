@@ -17,10 +17,6 @@ export default function ChatRoom() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Generate a unique ID for this client
-    const id = Math.random().toString(36).substring(2, 15);
-    setClientId(id);
-
     const url = `ws://${window.location.host}/socket`;
     const ws = new WebSocket(url);
     socketRef.current = ws;
@@ -29,7 +25,13 @@ export default function ChatRoom() {
       const payload =
         typeof event.data === "string" ? event.data : await event.data.text();
       const message = JSON.parse(payload) as Message;
-      setMessages((prev) => [...prev, message]);
+
+      // Handle the 'identity' message to set the client ID
+      if (message.type === "identity") {
+        setClientId(message.id);
+      } else {
+        setMessages((prev) => [...prev, message]);
+      }
     };
 
     return () => {
@@ -42,7 +44,8 @@ export default function ChatRoom() {
   const sendMessage = useCallback(() => {
     if (
       socketRef.current?.readyState === WebSocket.OPEN &&
-      inputMessage.trim()
+      inputMessage.trim() &&
+      clientId // Ensure clientId is set before sending
     ) {
       const message: Message = {
         type: "message",

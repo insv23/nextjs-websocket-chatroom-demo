@@ -27,10 +27,11 @@ export function SOCKET(
     }
   }
 
-  // Send a welcome message to the new client
+  // Send a welcome message AND the ID to the new client
   client.send(
     JSON.stringify({
-      type: "message",
+      type: "identity", // Changed message type to 'identity'
+      id: client.id,     // Include the ID
       author: "System",
       content: `Welcome to the chat! There ${
         server.clients.size - 1 === 1
@@ -65,3 +66,4 @@ export function SOCKET(
     }
   });
 }
+
